@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  student
+  trainer
+  admin
+}
+
+enum SetType {
+  warmup
+  working
+}
+
+enum PlanMode {
+  weekly
+  sequential
+}
+
+enum SessionStatus {
+  in_progress
+  completed
+  skipped
+}
+
+enum SyncStatus {
+  synced
+  pending
+}
+
+enum Feeling {
+  light
+  normal
+  heavy
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @db.Uuid
+  name          String
+  email         String   @unique
+  password_hash String
+  birth_date    DateTime @db.Date
+  height        Float?
+  weight        Float?
+  role          Role     @default(student)
+  trainer_id    String?  @db.Uuid
+  preferences   Json     @default("{}")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  trainer          User?             @relation("TrainerStudents", fields: [trainer_id], references: [id])
+  students         User[]            @relation("TrainerStudents")
+  exercises        Exercise[]
+  workoutTemplates WorkoutTemplate[] @relation("StudentTemplates")
+  createdTemplates WorkoutTemplate[] @relation("CreatorTemplates")
+  trainingSessions WorkoutSession[]
+  trainingPlans    TrainingPlan[]
+
+  @@map("users")
+}
+
+model MuscleGroup {
+  id         String   @id @db.Uuid
+  name       String   @unique
+  created_at DateTime @default(now())
+
+  exercises ExerciseMuscleGroup[]
+
+  @@map("muscle_groups")
+}
+
+model Exercise {
+  id            String   @id @db.Uuid
+  name          String
+  youtube_url   String?
+  notes         String?
+  created_by_id String   @db.Uuid
+  is_global     Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  createdBy           User                  @relation(fields: [created_by_id], references: [id])
+  muscleGroups        ExerciseMuscleGroup[]
+  templateItems       TemplateExercise[]
+  sessionLogs         SessionExerciseLog[]  @relation("OriginalExercise")
+  substitutedInLogs   SessionExerciseLog[]  @relation("SubstitutedExercise")
+
+  @@map("exercises")
+}
+
+model ExerciseMuscleGroup {
+  exercise_id     String @db.Uuid
+  muscle_group_id String @db.Uuid
+  order           Int    @default(0)
+
+  exercise    Exercise    @relation(fields: [exercise_id], references: [id], onDelete: Cascade)
+  muscleGroup MuscleGroup @relation(fields: [muscle_group_id], references: [id], onDelete: Cascade)
+
+  @@id([exercise_id, muscle_group_id])
+  @@index([exercise_id, order])
+  @@map("exercise_muscle_groups")
+}
+
+model WorkoutTemplate {
+  id            String   @id @db.Uuid
+  name          String
+  student_id    String   @db.Uuid
+  created_by_id String   @db.Uuid
+  version       Int      @default(1)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  student   User @relation("StudentTemplates", fields: [student_id], references: [id])
+  createdBy User @relation("CreatorTemplates", fields: [created_by_id], references: [id])
+
+  exercises TemplateExercise[]
+  sessions  WorkoutSession[]
+
+  @@map("workout_templates")
+}
+
+model TemplateExercise {
+  id                   String  @id @db.Uuid
+  template_id          String  @db.Uuid
+  exercise_id          String  @db.Uuid
+  order                Int
+  section_title        String?
+  superset_group       Int?
+  default_rest_seconds Int     @default(60)
+  notes                String?
+
+  template WorkoutTemplate       @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  exercise Exercise              @relation(fields: [exercise_id], references: [id])
+  sets     TemplateExerciseSet[]
+
+  @@index([template_id, order])
+  @@map("template_exercises")
+}
+
+model TemplateExerciseSet {
+  id                   String  @id @db.Uuid
+  template_exercise_id String  @db.Uuid
+  type                 SetType
+  quantity             Int
+  reps_range           String
+  rest_seconds         Int?
+
+  templateExercise TemplateExercise @relation(fields: [template_exercise_id], references: [id], onDelete: Cascade)
+
+  @@map("template_exercise_sets")
+}
+
+model TrainingPlan {
+  id         String    @id @db.Uuid
+  name       String
+  student_id String    @db.Uuid
+  mode       PlanMode
+  week_map   Json?
+  sequence   Json?
+  start_date DateTime  @db.Date
+  end_date   DateTime? @db.Date
+  created_at DateTime  @default(now())
+
+  student User @relation(fields: [student_id], references: [id])
+
+  @@map("training_plans")
+}
+
+model WorkoutSession {
+  id                  String        @id @db.Uuid
+  student_id          String        @db.Uuid
+  workout_template_id String        @db.Uuid
+  template_version    Int
+  date                DateTime      @db.Date
+  started_at          DateTime?
+  finished_at         DateTime?
+  status              SessionStatus @default(in_progress)
+  total_volume        Float?
+  sync_status         SyncStatus    @default(pending)
+  notes               String?
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  student         User                 @relation(fields: [student_id], references: [id])
+  workoutTemplate WorkoutTemplate      @relation(fields: [workout_template_id], references: [id])
+  exerciseLogs    SessionExerciseLog[]
+
+  @@map("workout_sessions")
+}
+
+model SessionExerciseLog {
+  id                      String   @id @db.Uuid
+  session_id              String   @db.Uuid
+  exercise_id             String   @db.Uuid
+  substituted_exercise_id String?  @db.Uuid
+  feeling                 Feeling?
+  notes                   String?
+
+  session             WorkoutSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  exercise            Exercise       @relation("OriginalExercise", fields: [exercise_id], references: [id])
+  substitutedExercise Exercise?      @relation("SubstitutedExercise", fields: [substituted_exercise_id], references: [id])
+  sets                SessionSet[]
+
+  @@map("session_exercise_logs")
+}
+
+model SessionSet {
+  id                      String  @id @db.Uuid
+  session_exercise_log_id String  @db.Uuid
+  set_number              Int
+  type                    SetType
+  weight                  Float
+  reps                    Int
+  sub_reps                Json?
+
+  exerciseLog SessionExerciseLog @relation(fields: [session_exercise_log_id], references: [id], onDelete: Cascade)
+
+  @@map("session_sets")
+}
