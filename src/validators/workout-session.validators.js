@@ -9,6 +9,7 @@ const createSessionValidators = [
 ]
 
 const updateSessionValidators = [
+  body('date').optional().isISO8601().withMessage('date inválida'),
   body('finishedAt').optional({ nullable: true }).isISO8601(),
   body('notes').optional({ nullable: true }).isString(),
   body('syncStatus').optional().isIn(['synced', 'pending']),

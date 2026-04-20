@@ -205,6 +205,7 @@ model SessionExerciseLog {
   substituted_exercise_id String?  @db.Uuid
   feeling                 Feeling?
   notes                   String?
+  order                   Int      @default(0)
 
   session             WorkoutSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
   exercise            Exercise       @relation("OriginalExercise", fields: [exercise_id], references: [id])
@@ -215,13 +216,15 @@ model SessionExerciseLog {
 }
 
 model SessionSet {
-  id                      String  @id @db.Uuid
-  session_exercise_log_id String  @db.Uuid
+  id                      String   @id @db.Uuid
+  session_exercise_log_id String   @db.Uuid
   set_number              Int
   type                    SetType
   weight                  Float
   reps                    Int
   sub_reps                Json?
+  weight_feeling          Feeling?
+  reps_feeling            Feeling?
 
   exerciseLog SessionExerciseLog @relation(fields: [session_exercise_log_id], references: [id], onDelete: Cascade)
 

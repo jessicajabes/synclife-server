@@ -1,7 +1,9 @@
 const prisma = require('../config/database')
 
 const buildSessionInclude = () => ({
+  workoutTemplate: { select: { id: true, name: true } },
   exerciseLogs: {
+    orderBy: { order: 'asc' },
     include: {
       exercise: { select: { id: true, name: true } },
       substitutedExercise: { select: { id: true, name: true } },
@@ -14,6 +16,7 @@ const formatSession = (session) => ({
   id: session.id,
   studentId: session.student_id,
   workoutTemplateId: session.workout_template_id,
+  templateName: session.workoutTemplate?.name ?? null,
   templateVersion: session.template_version,
   date: session.date,
   startedAt: session.started_at,
@@ -39,6 +42,8 @@ const formatSession = (session) => ({
       weight: s.weight,
       reps: s.reps,
       subReps: s.sub_reps,
+      weightFeeling: s.weight_feeling ?? null,
+      repsFeeling: s.reps_feeling ?? null,
     })),
   })),
 })
@@ -123,19 +128,22 @@ const updateSession = async (id, data, userId) => {
     await tx.workoutSession.update({
       where: { id },
       data: {
+        ...(data.date !== undefined && { date: new Date(data.date) }),
         ...(data.notes !== undefined && { notes: data.notes }),
+        ...(data.totalVolume !== undefined && { total_volume: data.totalVolume }),
         ...(data.syncStatus !== undefined && { sync_status: data.syncStatus }),
       },
     })
 
     if (data.exerciseLogs !== undefined) {
-      for (const log of data.exerciseLogs) {
+      for (const [logIndex, log] of data.exerciseLogs.entries()) {
         const existingLog = await tx.sessionExerciseLog.findUnique({ where: { id: log.id } })
 
         if (existingLog) {
           await tx.sessionExerciseLog.update({
             where: { id: log.id },
             data: {
+              order: logIndex,
               ...(log.feeling !== undefined && { feeling: log.feeling }),
               ...(log.notes !== undefined && { notes: log.notes }),
               ...(log.substitutedExerciseId !== undefined && {
@@ -152,6 +160,7 @@ const updateSession = async (id, data, userId) => {
               substituted_exercise_id: log.substitutedExerciseId ?? null,
               feeling: log.feeling ?? null,
               notes: log.notes ?? null,
+              order: logIndex,
             },
           })
         }
@@ -166,6 +175,8 @@ const updateSession = async (id, data, userId) => {
                   weight: set.weight,
                   reps: set.reps,
                   ...(set.subReps !== undefined && { sub_reps: set.subReps }),
+                  ...(set.weightFeeling !== undefined && { weight_feeling: set.weightFeeling }),
+                  ...(set.repsFeeling !== undefined && { reps_feeling: set.repsFeeling }),
                 },
               })
             } else {
@@ -178,6 +189,8 @@ const updateSession = async (id, data, userId) => {
                   weight: set.weight,
                   reps: set.reps,
                   sub_reps: set.subReps ?? null,
+                  weight_feeling: set.weightFeeling ?? null,
+                  reps_feeling: set.repsFeeling ?? null,
                 },
               })
             }
