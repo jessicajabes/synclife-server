@@ -290,4 +290,5 @@ module.exports = {
   finishSession,
   discardSession,
   deleteSession,
+  formatSession,
 }

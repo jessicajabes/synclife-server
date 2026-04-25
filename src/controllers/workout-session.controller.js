@@ -120,7 +120,7 @@ const getUnifiedHistory = async (req, res, next) => {
     ])
 
     const items = [
-      ...sessions.map(s => ({ type: 'workout', date: s.date, data: s })),
+      ...sessions.map(s => ({ type: 'workout', date: s.date, data: workoutSessionService.formatSession(s) })),
       ...checkins.map(c => ({ type: 'checkin', date: c.date, data: c })),
     ].sort((a, b) => new Date(b.date) - new Date(a.date))
 

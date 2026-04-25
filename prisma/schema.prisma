@@ -37,9 +37,12 @@ enum SyncStatus {
 }
 
 enum Feeling {
+  very_heavy
   light
   normal
-  heavy
+  very_light
+  too_light
+  heavy  // legacy support
 }
 
 enum CheckinFieldType {
