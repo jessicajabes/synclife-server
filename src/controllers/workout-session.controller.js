@@ -1,4 +1,6 @@
 const workoutSessionService = require('../services/workout-session.service')
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
 
 const getInProgressSession = async (req, res, next) => {
   try {
@@ -78,6 +80,65 @@ const deleteSession = async (req, res, next) => {
   }
 }
 
+const getUnifiedHistory = async (req, res, next) => {
+  try {
+    const { from, to, page = 1, limit = 20 } = req.query
+    const userId = req.user.id
+
+    const [sessions, checkins] = await Promise.all([
+      prisma.workoutSession.findMany({
+        where: {
+          student_id: userId,
+          date: { gte: new Date(from), lte: new Date(to) },
+        },
+        include: {
+          workoutTemplate: { select: { name: true } },
+          exerciseLogs: {
+            include: { sets: true, exercise: { select: { id: true, name: true } } },
+            orderBy: { order: 'asc' },
+          },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      prisma.checkinEntry.findMany({
+        where: {
+          user_id: userId,
+          date: { gte: new Date(from), lte: new Date(to) },
+        },
+        include: {
+          answers: {
+            include: {
+              question: {
+                select: { label: true, field_type: true, unit: true, is_active: true },
+              },
+            },
+            orderBy: { question: { order: 'asc' } },
+          },
+        },
+        orderBy: { date: 'desc' },
+      }),
+    ])
+
+    const items = [
+      ...sessions.map(s => ({ type: 'workout', date: s.date, data: s })),
+      ...checkins.map(c => ({ type: 'checkin', date: c.date, data: c })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date))
+
+    const start = (Number(page) - 1) * Number(limit)
+    return res.status(200).json({
+      data: {
+        items: items.slice(start, start + Number(limit)),
+        total: items.length,
+        page: Number(page),
+      },
+      error: null,
+      message: null,
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   getInProgressSession,
   listSessions,
@@ -87,4 +148,5 @@ module.exports = {
   finishSession,
   discardSession,
   deleteSession,
+  getUnifiedHistory,
 }

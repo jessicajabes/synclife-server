@@ -498,7 +498,7 @@ const importExcel = async () => {
             }
 
             return t
-          })
+          }, { timeout: 30000 })
 
           templateByName[normalize(templateName)] = template
           log.info(`Criado com ${templateExercises.length} exercício(s)`)
@@ -599,7 +599,7 @@ const importExcel = async () => {
                 },
               })
             }
-          })
+          }, { timeout: 30000 })
 
           log.info(`Sessão semana ${weekNum} (${dateStr}): ${exerciseLogs.length} ex, ${totalVolume.toFixed(0)}kg`)
           stats.sessionsCreated++

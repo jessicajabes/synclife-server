@@ -8,6 +8,7 @@ const exerciseRoutes = require('./routes/exercise.routes')
 const workoutTemplateRoutes = require('./routes/workout-template.routes')
 const trainingPlanRoutes = require('./routes/training-plan.routes')
 const workoutSessionRoutes = require('./routes/workout-session.routes')
+const checkinRoutes = require('./routes/checkin.routes')
 const errorHandler = require('./middleware/error-handler.middleware')
 const logger = require('./config/logger')
 
@@ -24,6 +25,7 @@ app.use('/api/exercises', exerciseRoutes)
 app.use('/api/workout-templates', workoutTemplateRoutes)
 app.use('/api/training-plans', trainingPlanRoutes)
 app.use('/api/workout-sessions', workoutSessionRoutes)
+app.use('/api/checkin', checkinRoutes)
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {

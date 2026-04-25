@@ -9,6 +9,7 @@ const router = Router()
 router.use(authenticate)
 
 router.get('/in-progress', workoutSessionController.getInProgressSession)
+router.get('/history/unified', workoutSessionController.getUnifiedHistory)
 router.get('/', workoutSessionController.listSessions)
 router.get('/:id', workoutSessionController.getSession)
 router.post('/', validate(createSessionValidators), workoutSessionController.createSession)
