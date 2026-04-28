@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SyncLife – Script de Importação da Planilha Excel
+ * SincroLife – Script de Importação da Planilha Excel
  *
  * Uso: node scripts/import-excel.js <caminho-do-xlsx> [email-do-usuario]
  *
@@ -283,7 +283,7 @@ const parseSheet = (sheetName, wb) => {
 // ── Importação ────────────────────────────────────────────────────────────────
 
 const importExcel = async () => {
-  console.log('\n🏋️  SyncLife – Importação da Planilha Excel')
+  console.log('\n🏋️  SincroLife – Importação da Planilha Excel')
   console.log('Arquivo:', XLSX_PATH)
 
   // 1. Carregar planilha

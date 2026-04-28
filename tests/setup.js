@@ -4,7 +4,7 @@ module.exports = async () => {
   // Apontar para banco de teste
   process.env.DATABASE_URL =
     process.env.DATABASE_URL_TEST ||
-    'postgresql://synclife:synclife@localhost:5432/synclife_test?schema=public'
+    'postgresql://sincrolife:sincrolife@localhost:5432/sincrolife_test?schema=public'
   process.env.JWT_SECRET = 'test-secret-key'
   process.env.NODE_ENV = 'test'
 

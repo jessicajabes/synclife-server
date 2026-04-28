@@ -1,7 +1,7 @@
 {
-  "name": "synclife-server",
+  "name": "sincrolife-server",
   "version": "1.0.0",
-  "description": "SyncLife backend – módulo Academia",
+  "description": "SincroLife backend – módulo Academia",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",

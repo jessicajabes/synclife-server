@@ -45,7 +45,7 @@ const PORT = process.env.PORT || 3001
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    logger.info(`SyncLife server running on port ${PORT}`)
+    logger.info(`SincroLife server running on port ${PORT}`)
   })
 }
 

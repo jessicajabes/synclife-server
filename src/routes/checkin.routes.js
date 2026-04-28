@@ -18,6 +18,9 @@ router.get('/questions/search', checkinController.searchQuestions)
 // POST /checkin/questions - Create a new question
 router.post('/questions', checkinController.createQuestion)
 
+// PATCH /checkin/questions/reorder - Reorder questions (MUST be before :id routes)
+router.patch('/questions/reorder', checkinController.reorderQuestions)
+
 // PATCH /checkin/questions/:id - Edit label and unit
 router.patch('/questions/:id', checkinController.updateQuestion)
 
@@ -26,9 +29,6 @@ router.patch('/questions/:id/activate', checkinController.activateQuestion)
 
 // DELETE /checkin/questions/:id - Soft delete (set is_active = false)
 router.delete('/questions/:id', checkinController.deactivateQuestion)
-
-// PATCH /checkin/questions/reorder - Reorder questions
-router.patch('/questions/reorder', checkinController.reorderQuestions)
 
 // ─── Daily Check-in ───────────────────────────────────────────────────────
 
