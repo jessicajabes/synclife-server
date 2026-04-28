@@ -9,9 +9,11 @@ const router = Router()
 router.use(authenticate)
 
 router.get('/', trainingPlanController.listPlans)
+router.get('/active/current', trainingPlanController.getActivePlan)
 router.get('/:id', trainingPlanController.getPlan)
 router.post('/', validate(createPlanValidators), trainingPlanController.createPlan)
 router.patch('/:id', validate(updatePlanValidators), trainingPlanController.updatePlan)
+router.patch('/:id/activate', trainingPlanController.setActivePlan)
 router.delete('/:id', trainingPlanController.deletePlan)
 
 module.exports = router

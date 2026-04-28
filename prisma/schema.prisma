@@ -182,6 +182,7 @@ model TrainingPlan {
   sequence   Json?
   start_date DateTime  @db.Date
   end_date   DateTime? @db.Date
+  is_active  Boolean   @default(false)
   created_at DateTime  @default(now())
 
   student User @relation(fields: [student_id], references: [id])

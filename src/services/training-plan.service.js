@@ -9,6 +9,7 @@ const formatPlan = (plan) => ({
   sequence: plan.sequence,
   startDate: plan.start_date,
   endDate: plan.end_date,
+  isActive: plan.is_active,
   createdAt: plan.created_at,
 })
 
@@ -112,4 +113,36 @@ const deletePlan = async (id, userId) => {
   await prisma.trainingPlan.delete({ where: { id } })
 }
 
-module.exports = { listPlans, getPlanById, createPlan, updatePlan, deletePlan }
+const setActivePlan = async (planId, userId) => {
+  const existing = await prisma.trainingPlan.findFirst({
+    where: { id: planId, student_id: userId },
+  })
+
+  if (!existing) {
+    const err = new Error('Plano não encontrado')
+    err.statusCode = 404
+    throw err
+  }
+
+  await prisma.trainingPlan.updateMany({
+    where: { student_id: userId },
+    data: { is_active: false },
+  })
+
+  const activePlan = await prisma.trainingPlan.update({
+    where: { id: planId },
+    data: { is_active: true },
+  })
+
+  return formatPlan(activePlan)
+}
+
+const getActivePlan = async (userId) => {
+  const plan = await prisma.trainingPlan.findFirst({
+    where: { student_id: userId, is_active: true },
+  })
+
+  return plan ? formatPlan(plan) : null
+}
+
+module.exports = { listPlans, getPlanById, createPlan, updatePlan, deletePlan, setActivePlan, getActivePlan }

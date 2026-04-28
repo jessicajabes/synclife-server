@@ -49,4 +49,22 @@ const deletePlan = async (req, res, next) => {
   }
 }
 
-module.exports = { listPlans, getPlan, createPlan, updatePlan, deletePlan }
+const setActivePlan = async (req, res, next) => {
+  try {
+    const plan = await trainingPlanService.setActivePlan(req.params.id, req.user.id)
+    return res.status(200).json({ data: plan, error: null, message: 'Plano ativado com sucesso' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const getActivePlan = async (req, res, next) => {
+  try {
+    const plan = await trainingPlanService.getActivePlan(req.user.id)
+    return res.status(200).json({ data: plan, error: null, message: null })
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { listPlans, getPlan, createPlan, updatePlan, deletePlan, setActivePlan, getActivePlan }
